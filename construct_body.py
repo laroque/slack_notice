@@ -30,6 +30,7 @@ def get_alarms(force=False):
             fields = [{'short':False, 'title': key, 'value': value} for key,value in sorted_messages.items()]
             attachments[0]['fields'] = fields
             to_return.update({'attachments':attachments})
+            to_return.update({'text': 'A more urgent message, for anyone listening <!here>'})
         elif force:
             to_return.update({'text':'Regular interval checkin; nothing to report'})
     except Exception as e:
