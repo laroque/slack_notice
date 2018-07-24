@@ -1,0 +1,3 @@
+post_url=https://hooks.slack.com/services/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
+message_check_interval=100
+checkin_interval=25000

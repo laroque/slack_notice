@@ -1,0 +1,4 @@
+# place this file at /tmp/slack_warnings and ensure proper rw permissions.
+# new messages to post should look like:
+#- [<date>, <name-of-alarming-process>, <alert-message>]
+to_send:

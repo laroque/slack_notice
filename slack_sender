@@ -1,0 +1,71 @@
+#!/bin/bash
+
+post_url=https://hooks.slack.com/services/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
+extra_log_file=/dev/null
+message_staging_file=/tmp/send_to_slack.json
+construct_body=/usr/local/bin/construct_body
+slack_messages_file=/tmp/slack_warnings
+message_check_interval=10
+checkin_interval=60
+
+if [[ -s /etc/slack_sender ]]; then
+    source /etc/slack_sender
+fi
+
+send_slack_message () {
+    echo "should send json:\n" | tee -a $extra_log_file
+    curl -X POST -d @$message_staging_file $post_url
+}
+
+case "$1" in
+  start)
+    echo "doing start thing" | tee -a $extra_log_file
+    if $construct_body -w > $message_staging_file; then
+      send_slack_message
+    fi
+    ;;
+  run)
+    while :
+    do
+      echo "seconds are: $SECONDS" | tee -a $extra_log_file
+      if [ $SECONDS -gt $checkin_interval ]; then
+        echo "doing a less often thing" | tee -a $extra_log_file
+        if $construct_body -f > $message_staging_file; then
+          echo "to_send:" >> $slack_messages_file
+          send_slack_message
+          SECONDS=0;
+        fi
+      else
+        echo "doing run thing" | tee -a $extra_log_file
+        if $construct_body > $message_staging_file; then
+          if [[ -s $message_staging_file ]]; then
+            send_slack_message
+            echo "to_send:" >> $slack_messages_file
+          fi
+        fi
+      fi
+      sleep $message_check_interval
+    done
+    ;;
+  stop)
+    echo "doing stop thing" | tee -a $extra_log_file
+    $construct_body -q > $message_staging_file
+    send_slack_message
+    ;;
+  send)
+    # consume case name
+    shift
+    # grab and consume the "source"
+    source_name=$1
+    shift
+    # everything else is the message
+    message="$@"
+    echo "staging the following message:" | tee -a $extra_log_file
+    echo "- ['`date`', '$source_name', '$message']" | tee -a $slack_messages_file | tee -a $extra_log_file
+    ;;
+  *)
+    N=$0
+    echo "Usage: $N {start|run|stop|send <source> <message>}" >&2
+    exit 1
+    ;;
+esac

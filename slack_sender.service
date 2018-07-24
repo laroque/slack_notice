@@ -1,0 +1,22 @@
+#this is an example based on https://www.devdungeon.com/content/creating-systemd-service-files
+# it assumes that the local shell script foo_service is installed to /usr/local/bin
+# assuming debian, this file should be placed in /lib/systemd/system
+# systemctl daemon-reload will re-parse this file
+# systemctl start|stop will start or stop the daemon manually
+# systemctl enable|disable will toggle loading on boot
+# man systemd.service will give the full set of configuations available in this file
+[Unit]
+Description=My Service that does nothing
+After=network.target
+
+[Service]
+Type=simple
+User=laroque
+WorkingDirectory=/home/laroque
+ExecStartPre=/usr/local/bin/slack_sender start
+ExecStart=/usr/local/bin/slack_sender run
+ExecStop=/usr/local/bin/slack_sender stop
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
