@@ -6,17 +6,22 @@
 # systemctl enable|disable will toggle loading on boot
 # man systemd.service will give the full set of configuations available in this file
 [Unit]
-Description=My Service that does nothing
+Description=Relay for transmitting cached messages to slack
 After=network.target
 
 [Service]
 Type=simple
-User=laroque
-WorkingDirectory=/home/laroque
+User=shipmind
+WorkingDirectory=/tmp
 ExecStartPre=/usr/local/bin/slack_sender start
 ExecStart=/usr/local/bin/slack_sender run
 ExecStop=/usr/local/bin/slack_sender stop
 Restart=on-failure
+# make sure content directory exists
+PermissionsStartOnly=true
+ExecStartPre=-/usr/bin/touch /tmp/slack_warnings
+ExecStartPre=/bin/chmod 666 /tmp/slack_warnings
+ExecStartPre=echo "to_send:" >> /tmp/slack_warnings
 
 [Install]
 WantedBy=multi-user.target
