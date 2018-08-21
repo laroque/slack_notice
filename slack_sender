@@ -12,6 +12,15 @@ if [[ -s /etc/slack_sender ]]; then
     source /etc/slack_sender
 fi
 
+touch $slack_messages_file
+if [[ -s $slack_messages_file ]]; then
+    echo "to_send:" >> $slack_messages_file
+fi
+
+if [[ -f $message_staging_file ]]; then
+    touch $message_staging_file
+fi
+
 send_slack_message () {
     echo "should send json:\n" | tee -a $extra_log_file
     curl -X POST -d @$message_staging_file $post_url
@@ -23,6 +32,7 @@ case "$1" in
     if $construct_body -w > $message_staging_file; then
       send_slack_message
     fi
+    echo "to_send:" >> $slack_messages_file
     ;;
   run)
     while :
