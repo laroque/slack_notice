@@ -33,7 +33,7 @@ case "$1" in
       send_slack_message
     fi
     echo "to_send:" >> $slack_messages_file
-    ;;
+    ;&
   run)
     while :
     do
