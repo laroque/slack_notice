@@ -13,15 +13,9 @@ After=network.target
 Type=simple
 User=shipmind
 WorkingDirectory=/tmp
-ExecStartPre=/usr/local/bin/slack_sender start
-ExecStart=/usr/local/bin/slack_sender run
+ExecStart=/usr/local/bin/slack_sender start
 ExecStop=/usr/local/bin/slack_sender stop
 Restart=on-failure
-# make sure content directory exists
-PermissionsStartOnly=true
-ExecStartPre=-/usr/bin/touch /tmp/slack_warnings
-ExecStartPre=/bin/chmod 666 /tmp/slack_warnings
-ExecStartPre=echo "to_send:" >> /tmp/slack_warnings
 
 [Install]
 WantedBy=multi-user.target
