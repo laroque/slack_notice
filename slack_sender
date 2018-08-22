@@ -8,17 +8,35 @@ slack_messages_file=/tmp/slack_warnings
 message_check_interval=10
 checkin_interval=60
 
+#load configurations file
+echo "load config file"
 if [[ -s /etc/slack_sender ]]; then
     source /etc/slack_sender
+else
+    echo "no config file found"
 fi
 
-touch $slack_messages_file
-if [[ -s $slack_messages_file ]]; then
+echo "check messages file"
+# ensure messages file existence and permissions
+if [[ ! -f $slack_messages_file ]]; then
+    echo "no slack messages file, creating"
+    touch $slack_messages_file
+elif [[ ! -w $slack_messages_file ]]; then
+    echo "unable to write to $slack_messages_file"
+    exit 10
+elif [[ -s $slack_messages_file ]]; then
+    echo "empty slack messages file, updating"
     echo "to_send:" >> $slack_messages_file
 fi
+echo "messages file checked"
 
-if [[ -f $message_staging_file ]]; then
+# ensure message temp file existence and permissions
+if [[ ! -f $message_staging_file ]]; then
+    echo "no message staging file, creating"
     touch $message_staging_file
+elif [[ ! -w $message_staging_file ]]; then
+    echo "unable to write to $message_staging_file"
+    exit 11
 fi
 
 send_slack_message () {
@@ -28,13 +46,14 @@ send_slack_message () {
 
 case "$1" in
   start)
-    echo "doing start thing" | tee -a $extra_log_file
+    echo "sending hello message" | tee -a $extra_log_file
     if $construct_body -w > $message_staging_file; then
       send_slack_message
     fi
     echo "to_send:" >> $slack_messages_file
     ;&
   run)
+    echo "starting infinite monitor loop"
     while :
     do
       echo "seconds are: $SECONDS" | tee -a $extra_log_file
@@ -58,7 +77,7 @@ case "$1" in
     done
     ;;
   stop)
-    echo "doing stop thing" | tee -a $extra_log_file
+    echo "doing stop things" | tee -a $extra_log_file
     $construct_body -q > $message_staging_file
     send_slack_message
     ;;
