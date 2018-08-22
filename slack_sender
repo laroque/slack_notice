@@ -9,34 +9,8 @@ message_check_interval=10
 checkin_interval=60
 
 #load configurations file
-echo "load config file"
 if [[ -s /etc/slack_sender ]]; then
     source /etc/slack_sender
-else
-    echo "no config file found"
-fi
-
-echo "check messages file"
-# ensure messages file existence and permissions
-if [[ ! -f $slack_messages_file ]]; then
-    echo "no slack messages file, creating"
-    touch $slack_messages_file
-elif [[ ! -w $slack_messages_file ]]; then
-    echo "unable to write to $slack_messages_file"
-    exit 10
-elif [[ -s $slack_messages_file ]]; then
-    echo "empty slack messages file, updating"
-    echo "to_send:" >> $slack_messages_file
-fi
-echo "messages file checked"
-
-# ensure message temp file existence and permissions
-if [[ ! -f $message_staging_file ]]; then
-    echo "no message staging file, creating"
-    touch $message_staging_file
-elif [[ ! -w $message_staging_file ]]; then
-    echo "unable to write to $message_staging_file"
-    exit 11
 fi
 
 send_slack_message () {
@@ -45,7 +19,32 @@ send_slack_message () {
 }
 
 case "$1" in
-  start)
+check)
+    echo "check messages file"
+    # ensure messages file existence and permissions
+    if [[ ! -f $slack_messages_file ]]; then
+        echo "no slack messages file, creating"
+        touch $slack_messages_file
+    elif [[ ! -w $slack_messages_file ]]; then
+        echo "unable to write to $slack_messages_file"
+        exit 10
+    elif [[ -s $slack_messages_file ]]; then
+        echo "empty slack messages file, updating"
+        echo "to_send:" >> $slack_messages_file
+    fi
+    chmod 664 $slack_messages_file
+    echo "messages file checked"
+    
+    # ensure message temp file existence and permissions
+    if [[ ! -f $message_staging_file ]]; then
+        echo "no message staging file, creating"
+        touch $message_staging_file
+    elif [[ ! -w $message_staging_file ]]; then
+        echo "unable to write to $message_staging_file"
+        exit 11
+    fi
+    ;;
+start)
     echo "sending hello message" | tee -a $extra_log_file
     if $construct_body -w > $message_staging_file; then
       send_slack_message

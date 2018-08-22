@@ -13,6 +13,7 @@ After=network.target
 Type=simple
 User=shipmind
 WorkingDirectory=/tmp
+ExecStartPre=/usr/local/bin/slack_sender check
 ExecStart=/usr/local/bin/slack_sender start
 ExecStop=/usr/local/bin/slack_sender stop
 Restart=on-failure
